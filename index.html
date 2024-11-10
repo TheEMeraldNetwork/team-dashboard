@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Dashboard</title>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Consolas', monospace;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .team-frame {
+            background-color: #2b2b2b;
+            margin-bottom: 8px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+
+        .header-frame {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .team-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .progress-label {
+            font-weight: bold;
+        }
+
+        .roles-text {
+            margin: 10px 0;
+            font-size: 14px;
+        }
+
+        .gates-frame {
+            display: flex;
+            gap: 20px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .checkbox-label.disabled {
+            color: #004400;
+        }
+
+        input[type="checkbox"] {
+            accent-color: #00ff00;
+        }
+
+        input[type="checkbox"]:disabled {
+            accent-color: #004400;
+        }
+
+        .country-roles {
+            background-color: #2b2b2b;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        .country-roles-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .timer-frame {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #2b2b2b;
+            padding: 15px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-label {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #2b2b2b;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'Consolas', monospace;
+        }
+
+        button:hover {
+            background-color: #3b3b3b;
+        }
+
+        input[type="number"] {
+            background-color: #1a1a1a;
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            padding: 5px;
+            width: 60px;
+            font-family: 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div id="dashboard">
+        <!-- Teams will be dynamically added here -->
+    </div>
+
+    <script>
+        const teamsData = {
+            'gm': {
+                'name': 'Team GM Country Italy',
+                'members': ['Perin', 'Boto', "D'Angelo"],
+                'ABL': 'Scarabattoli',
+                'DS': 'Del Boca',
+                'DE': 'Paladini'
+            },
+            'coo': {
+                'name': 'Team COO',
+                'members': ['Cavallero', 'Verraz', 'Nuti'],
+                'ABL': 'Colombo',
+                'DS': 'Nuzzo',
+                'DE': 'Niccolo'
+            },
+            'spa': {
+                'name': 'Team SPA e Bus. Delivery',
+                'members': ['Pirani', 'Rolandi', 'Fiori'],
+                'ABL': 'Testa',
+                'DS': 'Ruggieri',
+                'DE': 'Introini'
+            },
+            'hr': {
+                'name': 'Team HR',
+                'members': ['Caranchini', 'Muglia', 'Nozza', 'Tanzi'],
+                'ABL': 'Basso',
+                'DS': 'Bencini',
+                'DE': 'Purgato'
+            },
+            'com': {
+                'name': 'Team Comunicazione',
+                'members': ['Acquaviva', 'Guarneri', 'Posocco'],
+                'ABL': 'Greco',
+                'DS': 'Caporicci',
+                'DE': 'Frigerio'
+            }
+        };
+
+        const countryRoles = [
+            "Hackaton Coach: Perciballi",
+            "Data e Platform Gov: Natale Froglia",
+            "CRO: Consiglio Vitiello",
+            "Compliance Office: De Angelis",
+            "Legal: Ruffato"
+        ];
+
+        class Dashboard {
+            constructor() {
+                this.createDashboard();
+                this.initializeTimer();
+            }
+
+            createDashboard() {
+                const dashboard = document.getElementById('dashboard');
+                
+                // Create team frames
+                Object.entries(teamsData).forEach(([teamId, teamData]) => {
+                    const teamFrame = this.createTeamFrame(teamId, teamData);
+                    dashboard.appendChild(teamFrame);
+                });
+
+                // Create country roles
+                const rolesFrame = this.createCountryRolesFrame();
+                dashboard.appendChild(rolesFrame);
+
+                // Create timer
+                const timerFrame = this.createTimerFrame();
+                document.body.appendChild(timerFrame);
+            }
+
+            createTeamFrame(teamId, teamData) {
+                const frame = document.createElement('div');
+                frame.className = 'team-frame';
+
+                const header = document.createElement('div');
+                header.className = 'header-frame';
+                
+                const teamName = document.createElement('div');
+                teamName.className = 'team-name';
+                teamName.textContent = `${teamData.name}: ${teamData.members.join(', ')}`;
+                
+                const progress = document.createElement('div');
+                progress.className = 'progress-label';
+                progress.id = `progress-${teamId}`;
+                progress.textContent = '0/7';
+                progress.style.color = '#ff0000';
+
+                header.appendChild(teamName);
+                header.appendChild(progress);
+
+                const roles = document.createElement('div');
+                roles.className = 'roles-text';
+                roles.textContent = `ABL: ${teamData.ABL} | DS: ${teamData.DS} | DE: ${teamData.DE}`;
+
+                const gates = this.createGatesFrame(teamId);
+
+                frame.appendChild(header);
+                frame.appendChild(roles);
+                frame.appendChild(gates);
+
+                return frame;
+            }
+
+            createGatesFrame(teamId) {
+                const frame = document.createElement('div');
+                frame.className = 'gates-frame';
+
+                const gates = ['Cloud Initiative', 'AI Assessment', 'Business Case', 
+                             'Training', 'Production Gates', 'Adoption', 'Ready'];
+
+                gates.forEach((gate, index) => {
+                    const label = document.createElement('label');
+                    label.className = 'checkbox-label';
+                    if (index > 0) label.classList.add('disabled');
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.id = `${teamId}-gate-${index}`;
+                    if (index > 0) checkbox.disabled = true;
+
+                    checkbox.addEventListener('change', () => {
+                        this.handleCheckboxChange(teamId, index);
+                    });
+
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(gate));
+                    frame.appendChild(label);
+                });
+
+                return frame;
+            }
+
+            createCountryRolesFrame() {
+                const frame = document.createElement('div');
+                frame.className = 'country-roles';
+
+                const header = document.createElement('div');
+                header.className = 'country-roles-header';
+                header.textContent = 'JUST CODE IT';
+
+                const roles = document.createElement('div');
+                roles.textContent = countryRoles.join(' | ');
+
+                frame.appendChild(header);
+                frame.appendChild(roles);
+
+                return frame;
+            }
+
+            createTimerFrame() {
+                const frame = document.createElement('div');
+                frame.className = 'timer-frame';
+
+                const setupContainer = document.createElement('div');
+                setupContainer.id = 'timer-setup';
+
+                const label = document.createElement('span');
+                label.textContent = 'SET TIMER: ';
+
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.id = 'timer-input';
+                input.min = '1';
+
+                const goButton = document.createElement('button');
+                goButton.textContent = 'GO';
+                goButton.onclick = () => this.startTimer();
+
+                setupContainer.appendChild(label);
+                setupContainer.appendChild(input);
+                setupContainer.appendChild(goButton);
+
+                const timerDisplay = document.createElement('div');
+                timerDisplay.id = 'timer-display';
+                timerDisplay.className = 'timer-label';
+                timerDisplay.style.display = 'none';
+
+                const controlsContainer = document.createElement('div');
+                controlsContainer.id = 'timer-controls';
+                controlsContainer.style.display = 'none';
+
+                const startStopButton = document.createElement('button');
+                startStopButton.textContent = 'Start/Stop';
+                startStopButton.onclick = () => this.toggleTimer();
+
+                const resetButton = document.createElement('button');
+                resetButton.textContent = 'Reset';
+                resetButton.onclick = () => this.resetTimer();
+
+                controlsContainer.appendChild(startStopButton);
+                controlsContainer.appendChild(resetButton);
+
+                frame.appendChild(setupContainer);
+                frame.appendChild(timerDisplay);
+                frame.appendChild(controlsContainer);
+
+                return frame;
+            }
+
+            handleCheckboxChange(teamId, index) {
+                const checkbox = document.getElementById(`${teamId}-gate-${index}`);
+                const isChecked = checkbox.checked;
+
+                // Handle subsequent checkboxes
+                for (let i = index + 1; i < 7; i++) {
+                    const nextCheckbox = document.getElementById(`${teamId}-gate-${i}`);
+                    const nextLabel = nextCheckbox.parentElement;
+
+                    if (isChecked && i === index + 1) {
+                        // Enable next checkbox
+                        nextCheckbox.disabled = false;
+                        nextLabel.classList.remove('disabled');
+                    } else if (!isChecked) {
+                        // Disable and uncheck subsequent checkboxes
+                        nextCheckbox.disabled = true;
+                        nextCheckbox.checked = false;
+                        nextLabel.classList.add('disabled');
+                    }
+                }
+
+                this.updateProgress(teamId);
+            }
+
+            updateProgress(teamId) {
+                let count = 0;
+                for (let i = 0; i < 7; i++) {
+                    if (document.getElementById(`${teamId}-gate-${i}`).checked) {
+                        count++;
+                    }
+                }
+
+                const progress = document.getElementById(`progress-${teamId}`);
+                progress.textContent = `${count}/7`;
+                progress.style.color = count === 0 ? '#ff0000' : count <= 3 ? '#ffff00' : '#00ff00';
+            }
+
+            initializeTimer() {
+                this.timerRunning = false;
+                this.timerValue = 0;
+                this.timerInterval = null;
+            }
+
+            startTimer() {
+                const input = document.getElementById('timer-input');
+                const minutes = parseInt(input.value);
+
+                if (isNaN(minutes) || minutes <= 0) {
+                    alert('Please enter a valid number of minutes');
+                    return;
+                }
+
+                this.timerValue = minutes * 60;
+                document.getElementById('timer-setup').style.display = 'none';
+                document.getElementById('timer-display').style.display = 'block';
+                document.getElementById('timer-controls').style.display = 'flex';
+                this.updateTimerDisplay();
+            }
+
+            toggleTimer() {
+                this.timerRunning = !this.timerRunning;
+                if (this.timerRunning) {
+                    this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+                } else {
+                    clearInterval(this.timerInterval);
+                }
+            }
+
+            resetTimer() {
+                this.timerRunning = false;
+                clearInterval(this.timerInterval);
+                this.timerValue = parseInt(document.getElementById('timer-input').value) * 60;
+                this.updateTimerDisplay();
+            }
+
+            updateTimer() {
+                if (this.timerValue > 0) {
+                    this.timerValue--;
+                    this.updateTimerDisplay();
+                } else {
+                    this.timerRunning = false;
+                    clearInterval(this.timerInterval);
+                }
+            }
+
+            updateTimerDisplay() {
+                const minutes = Math.floor(this.timerValue / 60);
+                const seconds = this.timerValue % 60;
+                document.getElementById('timer-display').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+        }
+
+        // Initialize dashboard when page loads
+        window.onload = () => new Dashboard();
+    </script>
+</body>
+</html>
